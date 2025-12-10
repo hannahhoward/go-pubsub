@@ -1,4 +1,4 @@
-module github.com/hannahhoward/go-pubsub
+module github.com/hannahhoward/go-pubsub/v2
 
 go 1.18
 

@@ -32,29 +32,14 @@ import(
 )
 
 type MyLibrary struct {
-  pubSub pubsub.PubSub
+  pubSub pubsub.PubSub[int]
 }
 
 type MyLibarySubscriber func(event int)
 
-type internalEvent int
-
-func dispatcher(evt pubsub.Event, subscriber pubsub.SubscriberFn) error {
-  ie, ok := evt.(internalEvent)
-  if !ok {
-    return errors.New("wrong type of event")
-  }
-  myLibarySubscriber, ok := subscriber.(MyLibrarySubscriber)
-  if !ok {
-    return errors.new("wrong type of subscriber")
-  }
-  myLibraySubscriber(ie)
-  return nil
-}
-
 func New() * MyLibrary {
   return &MyLibrary{
-    pubSub: pubsub.New(dispatcher)
+    pubSub: pubsub[int].New()
   }
 }
 
@@ -63,7 +48,7 @@ func (ml * MyLibrary) Subscribe(subscriber MyLibrarySubscriber) pubsub.Unsubscri
 }
 
 func (ml * MyLibrary) SomeFunc(value int) {
-  ml.pubSub.Publish(internalEvent(value))
+  ml.pubSub.Publish(value)
 }
 ```
 

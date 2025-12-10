@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/hannahhoward/go-pubsub"
+	"github.com/hannahhoward/go-pubsub/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,30 +12,22 @@ type fakeEvent struct {
 	value uint64
 }
 
-type fakeSubscriber func(value uint64) error
-
-func dispatcher(evt pubsub.Event, subscriberFn pubsub.SubscriberFn) error {
-	fe := evt.(fakeEvent)
-	fs := subscriberFn.(fakeSubscriber)
-	return fs(fe.value)
-}
-
 func TestPubSub(t *testing.T) {
 	t.Run("subscribe / unsubscribe", func(t *testing.T) {
-		ps := pubsub.New(dispatcher)
+		ps := pubsub.New[fakeEvent]()
 
 		subscriber1Count := 0
 		lastValue1 := uint64(0)
-		var subscriber fakeSubscriber = func(value uint64) error {
-			lastValue1 = value
+		subscriber := func(event fakeEvent) error {
+			lastValue1 = event.value
 			subscriber1Count++
 			return nil
 		}
 
 		subscriber2Count := 0
 		lastValue2 := uint64(0)
-		var subscriber2 fakeSubscriber = func(value uint64) error {
-			lastValue2 = value
+		subscriber2 := func(event fakeEvent) error {
+			lastValue2 = event.value
 			subscriber2Count++
 			return nil
 		}
@@ -83,13 +75,13 @@ func TestPubSub(t *testing.T) {
 	})
 
 	t.Run("test errors", func(t *testing.T) {
-		ps := pubsub.New(dispatcher)
+		ps := pubsub.New[fakeEvent]()
 
 		subscriber1Count := 0
 		subscriber1Err := errors.New("disaster")
-		var subscriber fakeSubscriber = func(value uint64) error {
+		subscriber := func(event fakeEvent) error {
 			subscriber1Count++
-			if value == 2 {
+			if event.value == 2 {
 				return subscriber1Err
 			}
 			return nil
@@ -97,9 +89,9 @@ func TestPubSub(t *testing.T) {
 
 		subscriber2Count := 0
 		subscriber2Err := errors.New("calamity")
-		var subscriber2 fakeSubscriber = func(value uint64) error {
+		subscriber2 := func(event fakeEvent) error {
 			subscriber2Count++
-			if value == 3 {
+			if event.value == 3 {
 				return subscriber2Err
 			}
 			return nil
